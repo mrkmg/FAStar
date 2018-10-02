@@ -4,8 +4,10 @@ module Solver =
     open System
     open Helpers
 
-    exception NotPathable of string
-    exception Unsolveable of string
+    exception NotPathable
+    exception MaxTickReached
+    exception Unsolveable
+    exception AlreadySolved
 
     type private GetNeighbors<'Node> = 'Node -> 'Node list
     type private CalcScore<'Node> = 'Node -> 'Node -> double
@@ -32,7 +34,7 @@ module Solver =
             member this.isSolved = Set.contains this.DestinationNode this.ClosedNodes
             member this.isUnsolveable = 0 = Set.count this.OpenNodes
             member this.path =
-                if not (this.isSolved) then raise (NotPathable("Not Solved"))
+                if not (this.isSolved) then raise (NotPathable)
                 let rec buildNodes cNode (arr: List<'Node>) =
                     if this.Parents.ContainsKey cNode then
                         buildNodes this.Parents.[cNode] (cNode :: arr)
@@ -59,7 +61,8 @@ module Solver =
             Iter = fun t -> ()
         }
 
-    let tick state =
+    let tick (state: State<'Node>) =
+        if state.isSolved then raise (AlreadySolved)
         let sortByer t = state.TotalScores.[t]
         let current = state.OpenNodes |> Set.toSeq |> Seq.sortBy sortByer |> Seq.head
         let currentFromScore = state.FromScores.[current]
@@ -85,10 +88,10 @@ module Solver =
                 NumberOfTicks = state.NumberOfTicks + 1
         }
         newState.Iter newState
+        if state.isUnsolveable then raise (Unsolveable)
+        else if state.NumberOfTicks >= state.MaxTicks then raise (MaxTickReached)
         newState
 
     let rec solve (state: State<'Node>) =
         if state.isSolved then state
-        else if state.isUnsolveable then raise (Unsolveable("No Possible Path"))
-        else if state.NumberOfTicks >= state.MaxTicks then raise (Unsolveable("Tick Limit Reached"))
         else state |> tick |> solve
