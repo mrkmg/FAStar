@@ -6,7 +6,7 @@ FAStar is a generic A* graph path finding solver written in F#
 
 To find a path between two nodes in a graph, you need to have the following:
 
-Assume that the type of your nodes is "Node"
+Assume that the type of your nodes is `'T`
 
 - Origin and Destination Nodes
 - An expression to get the neighbors of a given node
