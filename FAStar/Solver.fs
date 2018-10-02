@@ -26,7 +26,7 @@ module Solver =
             GetNeighbors: GetNeighbors<'Node>
             CalcScore: CalcScore<'Node>
             EstimateScore: EstimateScore<'Node>
-            NumberOfTicks: int
+            Ticks: int
             Thoroughness: float
             MaxTicks: int
             Iter: State<'Node> -> unit
@@ -55,7 +55,7 @@ module Solver =
             GetNeighbors = getNeigbors
             CalcScore = calcScore
             EstimateScore = estimateScore
-            NumberOfTicks = 0
+            Ticks = 0
             Thoroughness = 0.5
             MaxTicks = Int32.MaxValue
             Iter = fun t -> ()
@@ -63,6 +63,9 @@ module Solver =
 
     let tick (state: State<'Node>) =
         if state.isSolved then raise (AlreadySolved)
+        if state.isUnsolveable then raise (Unsolveable)
+        else if state.Ticks >= state.MaxTicks then raise (MaxTickReached)
+
         let sortByer t = state.TotalScores.[t]
         let current = state.OpenNodes |> Set.toSeq |> Seq.sortBy sortByer |> Seq.head
         let currentFromScore = state.FromScores.[current]
@@ -85,11 +88,9 @@ module Solver =
                 Parents = transformAppendListToMap newNodes (fun t -> current) state.Parents
                 FromScores = transformAppendListToMap newNodes (calcFromScore) state.FromScores
                 TotalScores = transformAppendListToMap newNodes (calcTotalScore) state.TotalScores
-                NumberOfTicks = state.NumberOfTicks + 1
+                Ticks = state.Ticks + 1
         }
         newState.Iter newState
-        if state.isUnsolveable then raise (Unsolveable)
-        else if state.NumberOfTicks >= state.MaxTicks then raise (MaxTickReached)
         newState
 
     let rec solve (state: State<'Node>) =

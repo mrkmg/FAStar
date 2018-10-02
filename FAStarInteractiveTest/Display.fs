@@ -5,7 +5,14 @@ module Display =
     open System
     open SimpleWorld.SimpleWorld
 
-    let fillerChar = '▓'
+    let private fillerChar = '▓'
+    let private defaultBackground = ConsoleColor.Black
+    let private defaultForeground = ConsoleColor.White
+    let private errorBackground = ConsoleColor.Red
+    let private errorForeground = ConsoleColor.White
+    let private pathForeground = ConsoleColor.Blue
+    let private endpointForground = ConsoleColor.Magenta
+    let private debugPointForeground = ConsoleColor.Red
 
     let drawAt() (x: int) (y: int) (c: char) =
         Console.CursorLeft <- x
@@ -18,7 +25,8 @@ module Display =
         Console.Write message
 
     let clearScreen() =
-        Console.BackgroundColor <- ConsoleColor.Black
+        Console.BackgroundColor <- defaultBackground
+        Console.ForegroundColor <- defaultForeground
         Console.Clear()
 
     let getCharForNode (node: Position) =
@@ -36,27 +44,30 @@ module Display =
         | PositionType.Grass -> ConsoleColor.Green
 
     let promptToContinue() =
-        Console.BackgroundColor <- ConsoleColor.Black
+        Console.BackgroundColor <- defaultBackground
+        Console.ForegroundColor <- defaultForeground
         drawMessage() "q to quit, any other key to continue"
-        not (Console.ReadKey(false).KeyChar.Equals 'q')
+        not (Console.ReadKey(true).KeyChar.Equals 'q')
 
     let askForSingleKey() =
-        Console.ReadKey(false)
+        Console.ReadKey(true)
 
     let askForSingleKeyWithMessage() msg =
-        Console.BackgroundColor <- ConsoleColor.Black
-        Console.ForegroundColor <- ConsoleColor.White
+        Console.BackgroundColor <- defaultBackground
+        Console.ForegroundColor <- defaultForeground
         drawMessage() msg
         askForSingleKey()
 
     let displayError() (msg: string) =
-        Console.BackgroundColor <- ConsoleColor.Red
-        Console.ForegroundColor <- ConsoleColor.White
-        drawMessage() msg
+        Console.BackgroundColor <- errorBackground
+        Console.ForegroundColor <- errorForeground
+        Console.CursorLeft <- 0
+        Console.CursorTop <- Console.WindowHeight - 1
+        Console.Write msg
 
     let printMessage() (message: string) =
-        Console.BackgroundColor <- ConsoleColor.Black
-        Console.ForegroundColor <- ConsoleColor.White
+        Console.BackgroundColor <- defaultBackground
+        Console.ForegroundColor <- defaultForeground
         drawMessage() (String.replicate Console.WindowWidth " ")
         drawMessage() message
 
@@ -69,48 +80,20 @@ module Display =
         for node in nodes do printNode() node
 
     let printPath() (nodes: List<Position>) =
-        Console.ForegroundColor <- ConsoleColor.Blue
+        Console.ForegroundColor <- pathForeground
         for node in nodes do
             Console.BackgroundColor <- getColorForNode node
             drawAt() node.X node.Y fillerChar
-        Console.ForegroundColor <- ConsoleColor.White
-
-    let debugClosedNodes() (nodes: List<Position>) =
-        Console.ForegroundColor <- ConsoleColor.Red
-        for node in nodes do
-            Console.BackgroundColor <- getColorForNode node
-            drawAt() node.X node.Y fillerChar
-        Console.ForegroundColor <- ConsoleColor.White
-
-    let debugOpenNodes() (nodes: List<Position>) =
-        Console.ForegroundColor <- ConsoleColor.Cyan
-        for node in nodes do
-            Console.BackgroundColor <- getColorForNode node
-            drawAt() node.X node.Y fillerChar
-        Console.ForegroundColor <- ConsoleColor.White
 
     let debugCurrentNode() (node: Position) =
         Console.BackgroundColor <- getColorForNode node
-        Console.ForegroundColor <- ConsoleColor.Red
+        Console.ForegroundColor <- debugPointForeground
         drawAt() node.X node.Y fillerChar
-        Console.ForegroundColor <- ConsoleColor.White
 
-    let getNumberFromInput (message: string) =
-        Console.Clear()
-        Console.WriteLine message
-        let mutable didGetNumber = false
-        let mutable number = 0
-        while not didGetNumber do
-            let input = Console.ReadLine()
-            try
-                number <- input |> int
-                if number > 500 then
-                    Console.WriteLine "Number too large"
-                else
-                    didGetNumber <- number < 500
-            with
-            | :? FormatException -> displayError() "Invalid Number"
-        number
+    let debugEndPointNode() (node: Position) =
+        Console.BackgroundColor <- getColorForNode node
+        Console.ForegroundColor <- endpointForground
+        drawAt() node.X node.Y fillerChar
 
 
 

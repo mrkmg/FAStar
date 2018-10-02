@@ -9,7 +9,8 @@ module Main =
      open SimpleWorld
 
      let debug(state: Solver.State<SimpleWorld.Position>) =
-             Display.debugCurrentNode() state.LastNode
+        if not (state.LastNode = state.OriginNode) && not (state.LastNode = state.DestinationNode) then
+            Display.debugCurrentNode() state.LastNode
 
      let createSolver origin destination thoroughness (world: SimpleWorld.World)=
          {
@@ -35,20 +36,23 @@ module Main =
             Display.printNodes() world.Positions
             for i in thoroughnesses do
                 Display.printMessage() (i.ToString())
+                Display.debugEndPointNode() origin
+                Display.debugEndPointNode() destination
                 let state = Solver.solve (createSolver origin destination i world)
                 Display.printPath() state.path
-                listOfPaths <- List.append listOfPaths [state.path]
+                listOfPaths <- List.append listOfPaths [state]
                 for n in state.ClosedNodes do Display.printNode() n
-
-            Display.printNodes() world.Positions
 
             let mutable lastPrintedIndex = 0
             let printPath index =
                 if index >= 0 && index < listOfPaths.Length then
-                    let totalCost = listOfPaths.[index] |> List.map (fun t -> t.travelCost) |> List.sum
-                    for n in listOfPaths.[lastPrintedIndex] do Display.printNode() n
-                    Display.printMessage() ((string thoroughnesses.[index]) + " " + (string totalCost))
-                    Display.printPath() listOfPaths.[index]
+                    let totalCost = listOfPaths.[index].path |> List.map (fun t -> t.travelCost) |> List.sum
+                    let totalTicks = listOfPaths.[index].Ticks
+                    for n in listOfPaths.[lastPrintedIndex].path do Display.printNode() n
+                    Display.printMessage() ((string thoroughnesses.[index]) + " " + (string totalCost) + " " + (string totalTicks))
+                    Display.printPath() listOfPaths.[index].path
+                    Display.debugEndPointNode() origin
+                    Display.debugEndPointNode() destination
                     lastPrintedIndex <- index
 
             let mutable cont = true
@@ -59,7 +63,8 @@ module Main =
                     | k when (isNumInput k) -> printPath (k.KeyChar |> string |> int)
                     | _ -> Display.printMessage() "Unknown Path"
          with
-             | Solver.Unsolveable msg -> Display.displayError() msg
+             | Solver.Unsolveable -> Display.displayError() "Unsolveable"
+             | Solver.MaxTickReached -> Display.displayError() "Max Tick Limit Reached"
 
 
      [<EntryPoint>]

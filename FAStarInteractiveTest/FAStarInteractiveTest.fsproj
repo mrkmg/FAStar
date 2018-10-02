@@ -11,10 +11,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="SharpNoise" Version="0.11.0" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\FAStar\FAStar.fsproj" />
       <ProjectReference Include="..\SimpleWorld\SimpleWorld.fsproj" />
     </ItemGroup>
