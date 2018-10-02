@@ -9,33 +9,33 @@ module Solver =
     exception Unsolveable
     exception AlreadySolved
 
-    type private GetNeighbors<'Node> = 'Node -> 'Node list
-    type private CalcScore<'Node> = 'Node -> 'Node -> double
-    type private EstimateScore<'Node> = 'Node -> 'Node -> double
+    type private GetNeighbors<'T> = 'T -> 'T list
+    type private CalcScore<'T> = 'T -> 'T -> double
+    type private EstimateScore<'T> = 'T -> 'T -> double
 
-    type State<'Node when 'Node : comparison> =
+    type State<'T when 'T : comparison> =
         {
-            OpenNodes: Set<'Node>
-            ClosedNodes: Set<'Node>
-            Parents: Map<'Node, 'Node>
-            FromScores: Map<'Node, double>
-            TotalScores: Map<'Node, double>
-            OriginNode: 'Node
-            DestinationNode: 'Node
-            LastNode: 'Node
-            GetNeighbors: GetNeighbors<'Node>
-            CalcScore: CalcScore<'Node>
-            EstimateScore: EstimateScore<'Node>
+            OpenNodes: Set<'T>
+            ClosedNodes: Set<'T>
+            Parents: Map<'T, 'T>
+            FromScores: Map<'T, double>
+            TotalScores: Map<'T, double>
+            OriginNode: 'T
+            DestinationNode: 'T
+            LastNode: 'T
+            GetNeighbors: GetNeighbors<'T>
+            CalcScore: CalcScore<'T>
+            EstimateScore: EstimateScore<'T>
             Ticks: int
             Thoroughness: float
             MaxTicks: int
-            Iter: State<'Node> -> unit
+            Iter: State<'T> -> unit
         } with
             member this.isSolved = Set.contains this.DestinationNode this.ClosedNodes
             member this.isUnsolveable = 0 = Set.count this.OpenNodes
             member this.path =
                 if not (this.isSolved) then raise (NotPathable)
-                let rec buildNodes cNode (arr: List<'Node>) =
+                let rec buildNodes cNode (arr: List<'T>) =
                     if this.Parents.ContainsKey cNode then
                         buildNodes this.Parents.[cNode] (cNode :: arr)
                     else
@@ -61,7 +61,7 @@ module Solver =
             Iter = fun t -> ()
         }
 
-    let tick (state: State<'Node>) =
+    let tick (state: State<'T>) =
         if state.isSolved then raise (AlreadySolved)
         if state.isUnsolveable then raise (Unsolveable)
         else if state.Ticks >= state.MaxTicks then raise (MaxTickReached)
@@ -93,6 +93,6 @@ module Solver =
         newState.Iter newState
         newState
 
-    let rec solve (state: State<'Node>) =
+    let rec solve (state: State<'T>) =
         if state.isSolved then state
         else state |> tick |> solve
