@@ -10,11 +10,11 @@ Assume that the type of your nodes is "Node"
 
 - Origin and Destination Nodes
 - An expression to get the neighbors of a given node
-	+ Node -> List<Node>
+	+ `'T -> List<'T>`
 - An expression to get the cost from move from one node to another which returns a double
-	+ Node -> Node -> double
+	+ `'T -> 'T -> double`
 - An expression to get the estimated cost from one node to another which returns a double
-	+ Node -> Node -> double
+	+ `'T -> 'T -> double`
 	
 Once you have those requirements, you can create a state
 
@@ -55,39 +55,39 @@ let path = solvedState.path
 
 A Type
 
-The Solver.State<'T> represents the state of the A* solver. You can set a few items on the solver in order to tailor the A* solver to your needs.
+The `Solver.State<'T>` represents the state of the A* solver. You can set a few items on the solver in order to tailor the A* solver to your needs.
 
-- **Thoroughness**: float
+- **Thoroughness**: `float`
 	+ This is a factor from 0 to 1 of how thorough the search is. A thoroughness of 0 is the least thorough and equivalent to a "Greedy First" search. A thoroughness of 1 is the most thorough and equivalent to Dijkstra (Breadth-first) search. Values below 0 or above 1 will lead to undefined results.
-- **MaxTicks**: int
+- **MaxTicks**: `int`
 	+ The maximum number of nodes to check before giving up. This is useful if you want to prevent a search from taking too long.
-- **Iter**: Solver.State<'T> -> unit
+- **Iter**: `Solver.State<'T> -> unit`
 	+ A callback function which is executed after each tick of the solver. This is useful for debugging.
 	
-Solver.State<'T> also has some members you to get information about the current state.
+`Solver.State<'T>` also has some members you to get information about the current state.
 
-- **path**: List<'T>
+- **path**: `List<'T>`
 	+ The completed path. Will raise Solver.NotPathable is the state is not solved.
-- **isSolved**: bool
+- **isSolved**: `bool`
 	+ True if the current state is solved.
-- **isUnsolvable**: bool
+- **isUnsolvable**: `bool`
 	+ True if the current state is unsolvable.
 	
 ### Solver.create
 
-An expression: 'T -> 'T -> ( 'T -> List<'Node>) -> ('T -> 'T -> double) -> ('T -> 'T -> double) -> Solver.State<'T>
+An expression: `'T -> 'T -> ( 'T -> List<'Node>) -> ('T -> 'T -> double) -> ('T -> 'T -> double) -> Solver.State<'T>`
 
 The Solver.create function will create a new Solver State. It takes in an origin, destination, getNeighborsFunction, calcCostFunction, and estimateCostFunction. It will return a `Solver.State` which is ready to be solved.
 
 ### Solver.tick
 
-An expression: Solver.State<'T> -> Solver.State<'T>
+An expression: `Solver.State<'T> -> Solver.State<'T>`
 
 This will tick the solver and check the next node. Could raise Solver.MaxTickReached, Solver.Unsolveable, or Solver.AlreadySolved.
 
 ### Solver.solve
 
-An expression: Solver.State<'T> -> Solve.State<'T>
+An expression: `Solver.State<'T> -> Solve.State<'T>`
 
 This will tick the solver until it's solved and return the solved state. Could raise Solver.MaxTickReached or Solver.Unsolveable.
 
