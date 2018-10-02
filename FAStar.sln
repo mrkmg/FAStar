@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FAStar", "FAStar\FAStar.fsproj", "{2BE65F24-04D1-4569-91BB-258F7FBF8C6F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FAStarInteractiveTest", "FAStarInteractiveTest\FAStarInteractiveTest.fsproj", "{19382A71-4C43-4BE5-B565-D593E78B4E55}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SimpleWorld", "SimpleWorld\SimpleWorld.fsproj", "{C6AAC8D7-C086-4A05-88C1-F549A616603B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2BE65F24-04D1-4569-91BB-258F7FBF8C6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BE65F24-04D1-4569-91BB-258F7FBF8C6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BE65F24-04D1-4569-91BB-258F7FBF8C6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BE65F24-04D1-4569-91BB-258F7FBF8C6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19382A71-4C43-4BE5-B565-D593E78B4E55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19382A71-4C43-4BE5-B565-D593E78B4E55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19382A71-4C43-4BE5-B565-D593E78B4E55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19382A71-4C43-4BE5-B565-D593E78B4E55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6AAC8D7-C086-4A05-88C1-F549A616603B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6AAC8D7-C086-4A05-88C1-F549A616603B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6AAC8D7-C086-4A05-88C1-F549A616603B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6AAC8D7-C086-4A05-88C1-F549A616603B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
