@@ -4,6 +4,12 @@ module SimpleWorld =
     open SharpNoise
     open System
 
+    let private factor = 4.0
+    let private cFactor i = factor ** i
+    let private sq (i: float) = i * i
+    let private dist x1 x2 y1 y2 =
+        sq (float x1 - float x2) + sq (float y1 - float y2) |> sqrt
+
     let private getXyFromIndex (index: int) (width: int) =
         (index % width, index / width)
 
@@ -18,20 +24,14 @@ module SimpleWorld =
             Y: int
             Type: PositionType
         } with
-        member this.distanceTo position =
-            let sq num = num * num
-            let x3 num = num * (double 3)
-            sq (this.X - position.X) + sq (this.Y - position.Y) |> double |> sqrt |> x3
-
         member this.travelCost =
             match this.Type with
-                | Path -> 1
-                | Grass -> 2
-                | Rock -> 3
-                | _ -> Int32.MaxValue
-
-        member this.costTo position =
-            (this.distanceTo position) + (position.travelCost |> double)
+                | Path -> cFactor 0.0
+                | Grass -> cFactor 1.0
+                | Rock -> cFactor 2.0
+                | Wall -> 0.0
+        member this.distanceTo position = (dist this.X position.X this.Y position.Y) * (cFactor 1.0)
+        member this.costTo position = (this.distanceTo position) + (position.travelCost |> double)
 
 
     type World =
@@ -42,7 +42,16 @@ module SimpleWorld =
         } with
         member this.getAt x y = this.Positions.[getIndexFromXy x y this.Width]
         member this.neighbors position =
-            [(position.X - 1, position.Y); (position.X + 1, position.Y); (position.X, position.Y - 1); (position.X, position.Y + 1)]
+            [
+                (position.X - 1, position.Y)
+                (position.X + 1, position.Y)
+                (position.X, position.Y - 1)
+                (position.X, position.Y + 1)
+                (position.X - 1, position.Y - 1)
+                (position.X - 1, position.Y + 1)
+                (position.X + 1, position.Y - 1)
+                (position.X + 1, position.Y + 1)
+            ]
             |> List.where (fun (x, y) -> x >= 0 && x <= (this.Width - 1) && y >= 0 && y <= (this.Height - 1))
             |> List.map (fun (x, y) -> this.getAt x y)
             |> List.where (fun t -> not (t.Type = Wall))
