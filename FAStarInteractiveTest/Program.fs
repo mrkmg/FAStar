@@ -7,10 +7,12 @@ module Main =
     open System.Threading
     open FAStar
     open SimpleWorld
+    open SimpleWorld
 
     let private debug(state: Solver.State<SimpleWorld.Position>) =
-       if not (state.LastNode = state.OriginNode) && not (state.LastNode = state.DestinationNode) then
-            Display.debugCurrentNode() state.LastNode
+//        ()
+       if not (state.CurrentNode = state.OriginNode) && not (state.CurrentNode = state.DestinationNode) then
+            Display.debugCurrentNode() state.CurrentNode
 
     let private createSolver origin destination thoroughness (world: SimpleWorld.World)=
         {
@@ -19,21 +21,60 @@ module Main =
                 Thoroughness = thoroughness
         }
     let private isNumInput (consoleKeyInfo: ConsoleKeyInfo) =
-       List.contains  consoleKeyInfo.KeyChar ['1'; '2'; '3'; '4'; '5'; '6'; '7'; '8'; '9'; '0']
+        List.contains  consoleKeyInfo.KeyChar ['1'; '2'; '3'; '4'; '5'; '6'; '7'; '8'; '9'; '0']
+
+    let private calcCostOfPath (path: SimpleWorld.Position list) =
+        let rec c t (l: SimpleWorld.Position) r =
+            match r with
+            | [] -> t
+            | _ -> c (t + l.costTo r.Head) r.Head r.Tail
+        c 0.0 path.Head path.Tail
+
+    let private printResult offset thoroughness (result: Solver.State<SimpleWorld.Position>) isShowing =
+        Console.CursorTop <- offset
+        Console.CursorLeft <- 0
+        Console.BackgroundColor <- if isShowing then ConsoleColor.Cyan else ConsoleColor.Black
+        Console.ForegroundColor <- ConsoleColor.White
+        Console.Write("                                          ")
+        Console.CursorLeft <- 0
+        Console.Write ((string thoroughness) + "\t" + (string (calcCostOfPath result.path |> int)) + "\t" + (string (result.Ticks)))
+
+    let private showResults (thoroughnesses: float list) (results: Solver.State<SimpleWorld.Position> list) =
+        let rec k last next =
+            let mutable i = 0
+            for result in results do
+                printResult i thoroughnesses.[i] result (i = next)
+                i <- i + 1
+            for n in results.[last].path do Display.printNode() n
+            Display.printPath() results.[next].path
+            match Console.ReadKey() with
+            | ky when ky.Key = ConsoleKey.Enter || ky.Key = ConsoleKey.Q -> ()
+            | ky when (isNumInput ky) ->
+                let n = ky.KeyChar |> string |> int
+                if n >=0 && n < results.Length then k next n
+                else k last next
+            | _ -> k last next
+
+        k 0 0
 
     let genAndPrintMap() =
         try
-           let world = SimpleWorld.create Console.WindowWidth (Console.WindowHeight - 3)
-           let random = new Random()
-           let chooseRandomNode() = world.Positions.[random.Next(world.Positions.Length - 1)]
-           let origin = chooseRandomNode()
-           let destination = chooseRandomNode()
-           let mutable listOfPaths = List.empty
-           let thoroughnesses = List.init 7 (fun n -> 0.2 + 0.05 * (float n))
+            let world = SimpleWorld.create Console.WindowWidth (Console.WindowHeight)
+            let random = new Random()
 
-           Display.printNodes() world.Positions
+            let rec chooseRandomNode() =
+                match world.Positions.[random.Next(world.Positions.Length - 1)] with
+                | p when not (p.Type = SimpleWorld.Wall) -> p
+                | _ -> chooseRandomNode()
 
-           for i in thoroughnesses do
+            let origin = chooseRandomNode()
+            let destination = chooseRandomNode()
+            let mutable listOfPaths = List.empty
+            let thoroughnesses = [0.0; 0.1; 0.2; 0.3; 0.35; 0.4; 0.45; 0.5;]
+
+            Display.printNodes() world.Positions
+
+            for i in thoroughnesses do
                Display.printMessage() (i.ToString())
                Display.debugEndPointNode() origin
                Display.debugEndPointNode() destination
@@ -42,26 +83,7 @@ module Main =
                listOfPaths <- List.append listOfPaths [state]
                for n in state.ClosedNodes do Display.printNode() n
 
-           let mutable lastPrintedIndex = 0
-           let mutable cont = true
-
-           let printPath index =
-               if index >= 0 && index < listOfPaths.Length then
-                   let totalCost = listOfPaths.[index].path |> List.map (fun t -> t.travelCost) |> List.sum
-                   let totalTicks = listOfPaths.[index].Ticks
-                   for n in listOfPaths.[lastPrintedIndex].path do Display.printNode() n
-                   Display.printMessage() ((string thoroughnesses.[index]) + " " + (string totalCost) + " " + (string totalTicks))
-                   Display.printPath() listOfPaths.[index].path
-                   Display.debugEndPointNode() origin
-                   Display.debugEndPointNode() destination
-                   lastPrintedIndex <- index
-
-           Display.printMessage() "Choose a path to view"
-           while cont do
-               match Display.askForSingleKey() with
-                   | k when k.Key = ConsoleKey.Enter || k.Key = ConsoleKey.Q -> cont <- false
-                   | k when (isNumInput k) -> printPath (k.KeyChar |> string |> int)
-                   | _ -> Display.printMessage() "Unknown Path"
+            showResults thoroughnesses listOfPaths
         with
             | Solver.Unsolveable -> Display.displayError() "Unsolveable"
             | Solver.MaxTickReached -> Display.displayError() "Max Tick Limit Reached"

@@ -68,7 +68,7 @@ module Display =
     let printMessage() (message: string) =
         Console.BackgroundColor <- defaultBackground
         Console.ForegroundColor <- defaultForeground
-        drawMessage() (String.replicate Console.WindowWidth " ")
+        drawMessage() (String.replicate 20 " ")
         drawMessage() message
 
     let printNode() node =
