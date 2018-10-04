@@ -34,7 +34,12 @@ type Solver<'T when 'T : comparison> =
         member this.totalScore other = (this.fromScore other ) * this.Thoroughness + (this.EstimateScore other this.DestinationNode) * (1.0 - this.Thoroughness)
         member this.isSolved = Set.contains this.DestinationNode this.ClosedNodes
         member this.isUnsolveable = 0 = OrderedArray.count this.OpenNodes
-        member this.isValidNeighbor other = not (this.ClosedNodes.Contains(other)) && ( not (OrderedArray.containsValue other this.OpenNodes) || (this.fromScore other) < this.FromScores.[other])
+        member this.isValidNeighbor other =
+            not (this.ClosedNodes.Contains(other)) &&
+            (
+                not (OrderedArray.contains other this.OpenNodes) ||
+                (this.fromScore other) < this.FromScores.[other]
+            )
         member this.path =
             if not (this.isSolved) then []
             else
@@ -68,12 +73,12 @@ module Solver =
         }
 
     let private setCurrentNode (solver: Solver<'T>) =
-        let next = solver.OpenNodes |> OrderedArray.head
+        let (c, n) = solver.OpenNodes |> OrderedArray.pop
         {
             solver with
-                CurrentNode = next
-                OpenNodes = solver.OpenNodes |> OrderedArray.tail
-                ClosedNodes = solver.ClosedNodes |> Set.add next
+                CurrentNode = c
+                OpenNodes = n
+                ClosedNodes = solver.ClosedNodes |> Set.add c
         }
 
     let private processNeighbor (solver: Solver<'T>) neighbor =

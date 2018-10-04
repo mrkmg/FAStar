@@ -9,18 +9,18 @@ type OrderedArray<'k, 'v when 'v : comparison> =
     }
 
 module OrderedArray =
-    let internal sortAdd item lookup arr =
+    let internal presortedArrayInsert item lookup arr =
         let iVal = lookup item
+        let maxIndex = Array.length arr
 
-        let rec inSortAdd p r =
-            if r = [||] then Array.append p [|item|]
+        let rec inSortAdd index =
+            if index = maxIndex then Array.append arr [|item|]
             else
-                let n = Array.head r
-                let nVal = n |> lookup
-                if iVal < nVal then Array.append p (Array.append [|item|] r)
-                else inSortAdd (Array.append p [|n|]) (Array.tail r)
-
-        inSortAdd [||] arr
+                if iVal < lookup arr.[index] then
+                    if index = 0 then Array.append [|item|] arr
+                    else Array.concat [ arr.[0 .. (index - 1)]; [|item|]; arr.[(index)..] ]
+                else inSortAdd (index + 1)
+        inSortAdd 0
 
     let empty =
         {
@@ -30,22 +30,26 @@ module OrderedArray =
 
     let add key value queue =
         let keyMap = queue.Keys |> Map.add value key
+        let lookup t = keyMap.[t]
         {
             queue with
                 Keys = keyMap
-                Arr = queue.Arr |> sortAdd value (fun v -> keyMap.[v])
+                Arr = if Map.containsKey value queue.Keys then
+                            Array.sortBy (lookup) queue.Arr
+                        else
+                            presortedArrayInsert value (lookup) queue.Arr
         }
 
-    let containsValue value queue = Map.containsKey value queue.Keys
-
-    let remove value queue =
-        {
-            queue with
-                Keys = queue.Keys |> Map.remove value
-                Arr = queue.Arr |> Array.except [|value|]
-        }
+    let contains value queue = Map.containsKey value queue.Keys
 
     let count queue = Array.length queue.Arr
     let head queue = Array.head queue.Arr
-    let tail queue = remove (head queue) queue
+    let tail queue = {
+        queue with
+            Keys = queue.Keys |> Map.remove (Array.head queue.Arr)
+            Arr = Array.tail queue.Arr
+    }
+
+    let pop queue =
+        (head queue, tail queue)
 

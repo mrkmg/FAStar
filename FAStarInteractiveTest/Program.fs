@@ -10,8 +10,8 @@ module Main =
 
     let private debug(solver: Solver<SimpleWorld.Position>) =
         ()
-//       if not (solver.CurrentNode = solver.OriginNode) && not (solver.CurrentNode = solver.DestinationNode) then
-//       Display.debugCurrentNode() solver.CurrentNode
+//        if not (solver.CurrentNode = solver.OriginNode) && not (solver.CurrentNode = solver.DestinationNode) then
+//            do Display.debugCurrentNode() solver.CurrentNode
 
     let private createSolver origin destination thoroughness (world: SimpleWorld.World)=
         {
