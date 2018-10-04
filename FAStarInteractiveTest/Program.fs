@@ -7,12 +7,11 @@ module Main =
     open System.Threading
     open FAStar
     open SimpleWorld
-    open SimpleWorld
 
-    let private debug(state: Solver.State<SimpleWorld.Position>) =
-//        ()
-       if not (state.CurrentNode = state.OriginNode) && not (state.CurrentNode = state.DestinationNode) then
-            Display.debugCurrentNode() state.CurrentNode
+    let private debug(state: Solver<SimpleWorld.Position>) =
+        ()
+       //if not (state.CurrentNode = state.OriginNode) && not (state.CurrentNode = state.DestinationNode) then
+       //     Display.debugCurrentNode() state.CurrentNode
 
     let private createSolver origin destination thoroughness (world: SimpleWorld.World)=
         {
@@ -30,7 +29,7 @@ module Main =
             | _ -> c (t + l.costTo r.Head) r.Head r.Tail
         c 0.0 path.Head path.Tail
 
-    let private printResult offset thoroughness (result: Solver.State<SimpleWorld.Position>) isShowing =
+    let private printResult offset thoroughness (result: Solver<SimpleWorld.Position>) isShowing =
         Console.CursorTop <- offset
         Console.CursorLeft <- 0
         Console.BackgroundColor <- if isShowing then ConsoleColor.Cyan else ConsoleColor.Black
@@ -39,7 +38,7 @@ module Main =
         Console.CursorLeft <- 0
         Console.Write ((string thoroughness) + "\t" + (string (calcCostOfPath result.path |> int)) + "\t" + (string (result.Ticks)))
 
-    let private showResults (thoroughnesses: float list) (results: Solver.State<SimpleWorld.Position> list) =
+    let private showResults (thoroughnesses: float list) (results: Solver<SimpleWorld.Position> list) =
         let rec k last next =
             let mutable i = 0
             for result in results do
@@ -58,35 +57,36 @@ module Main =
         k 0 0
 
     let genAndPrintMap() =
-        try
-            let world = SimpleWorld.create Console.WindowWidth (Console.WindowHeight)
-            let random = new Random()
+        let world = SimpleWorld.create Console.WindowWidth (Console.WindowHeight)
+        let random = new Random()
 
-            let rec chooseRandomNode() =
-                match world.Positions.[random.Next(world.Positions.Length - 1)] with
-                | p when not (p.Type = SimpleWorld.Wall) -> p
-                | _ -> chooseRandomNode()
+        let rec chooseRandomNode() =
+            match world.Positions.[random.Next(world.Positions.Count - 1)] with
+            | p when not (p.Type = SimpleWorld.Wall) -> p
+            | _ -> chooseRandomNode()
 
-            let origin = chooseRandomNode()
-            let destination = chooseRandomNode()
-            let mutable listOfPaths = List.empty
-            let thoroughnesses = [0.0; 0.1; 0.2; 0.3; 0.35; 0.4; 0.45; 0.5;]
+        let origin = chooseRandomNode()
+        let destination = chooseRandomNode()
+        let mutable listOfPaths = List.empty
+        let thoroughnesses = [0.0; 0.1; 0.2; 0.3; 0.35; 0.4; 0.45; 0.5;]
 
-            Display.printNodes() world.Positions
+        Display.printNodes() (Map.toList world.Positions |> List.map (fun (k, v) -> v))
 
-            for i in thoroughnesses do
-               Display.printMessage() (i.ToString())
-               Display.debugEndPointNode() origin
-               Display.debugEndPointNode() destination
-               let state = Solver.solve (createSolver origin destination i world)
-               Display.printPath() state.path
-               listOfPaths <- List.append listOfPaths [state]
-               for n in state.ClosedNodes do Display.printNode() n
+        for i in thoroughnesses do
+            Display.printMessage() (i.ToString())
+            Display.debugEndPointNode() origin
+            Display.debugEndPointNode() destination
+            let state = Solver.solve (createSolver origin destination i world)
+            match state.Status with
+                | Unsolveable -> do Display.displayError() "Unsolveable"
+                | TickLimitReached -> do Display.displayError() "Tick Limit Reached"
+                | Solved -> 
+                    Display.printPath() state.path
+                    listOfPaths <- List.append listOfPaths [state]
+                | _ -> raise (Exception "How did I get here")
+            for n in state.ClosedNodes do Display.printNode() n
 
-            showResults thoroughnesses listOfPaths
-        with
-            | Solver.Unsolveable -> Display.displayError() "Unsolveable"
-            | Solver.MaxTickReached -> Display.displayError() "Max Tick Limit Reached"
+        showResults thoroughnesses listOfPaths
 
     [<EntryPoint>]
     let main argv =

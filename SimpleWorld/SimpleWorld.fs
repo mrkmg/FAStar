@@ -38,7 +38,7 @@ module SimpleWorld =
         {
             Width: int
             Height: int
-            Positions: Position list
+            Positions: Map<int, Position>
         } with
         member this.getAt x y = this.Positions.[getIndexFromXy x y this.Width]
         member this.neighbors position =
@@ -93,7 +93,7 @@ module SimpleWorld =
         {
             Width = width
             Height = height
-            Positions = List.init (width * height) (fun i -> createNode i width noise)
+            Positions = List.fold (fun m i -> Map.add i (createNode i width noise) m) Map.empty [0..width * height]
         }
 
 
