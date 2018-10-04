@@ -12,7 +12,7 @@ type private EstimateScore<'T> = 'T -> 'T -> float
 
 type Solver<'T when 'T : comparison> =
     {
-        OpenNodes: OrderedArray<float, 'T>
+        OpenNodes: OrderedList<float, 'T>
         ClosedNodes: Set<'T>
         Parents: Map<'T, 'T>
         FromScores: Map<'T, float>
@@ -33,11 +33,11 @@ type Solver<'T when 'T : comparison> =
         member this.fromScore other = this.currentFromScore + this.CalcScore this.CurrentNode other
         member this.totalScore other = (this.fromScore other ) * this.Thoroughness + (this.EstimateScore other this.DestinationNode) * (1.0 - this.Thoroughness)
         member this.isSolved = Set.contains this.DestinationNode this.ClosedNodes
-        member this.isUnsolveable = 0 = OrderedArray.count this.OpenNodes
+        member this.isUnsolveable = 0 = OrderedList.count this.OpenNodes
         member this.isValidNeighbor other =
             not (this.ClosedNodes.Contains(other)) &&
             (
-                not (OrderedArray.contains other this.OpenNodes) ||
+                not (OrderedList.contains other this.OpenNodes) ||
                 (this.fromScore other) < this.FromScores.[other]
             )
         member this.path =
@@ -55,7 +55,7 @@ type Solver<'T when 'T : comparison> =
 module Solver =
     let create origin destination getNeigbors calcScore estimateScore =
         {
-            OpenNodes = OrderedArray.empty |> OrderedArray.add 0.0 origin
+            OpenNodes = OrderedList.empty |> OrderedList.add 0.0 origin
             ClosedNodes = Set.empty
             Parents = Map.empty
             OriginNode = origin
@@ -73,7 +73,7 @@ module Solver =
         }
 
     let private setCurrentNode (solver: Solver<'T>) =
-        let (c, n) = solver.OpenNodes |> OrderedArray.pop
+        let (c, n) = solver.OpenNodes |> OrderedList.pop
         {
             solver with
                 CurrentNode = c
@@ -84,7 +84,7 @@ module Solver =
     let private processNeighbor (solver: Solver<'T>) neighbor =
         { 
             solver with
-                OpenNodes = solver.OpenNodes |> OrderedArray.add (solver.totalScore neighbor) neighbor
+                OpenNodes = solver.OpenNodes |> OrderedList.add (solver.totalScore neighbor) neighbor
                 Parents = solver.Parents |> Map.add neighbor solver.CurrentNode
                 FromScores = solver.FromScores |> Map.add neighbor (solver.fromScore neighbor)
         }

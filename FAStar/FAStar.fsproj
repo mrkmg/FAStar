@@ -6,7 +6,7 @@
 
     <ItemGroup>
         <Compile Include="Helpers.fs" />
-        <Compile Include="OrderedArray.fs" />
+        <Compile Include="OrderedList.fs" />
         <Compile Include="Solver.fs" />
     </ItemGroup>
 
