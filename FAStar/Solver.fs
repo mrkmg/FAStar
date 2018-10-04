@@ -6,10 +6,6 @@ open Helpers
 
 type SolverStatus = Open | Solved | Unsolveable | TickLimitReached
 
-type private GetNeighbors<'T> = 'T -> 'T list
-type private CalcScore<'T> = 'T -> 'T -> float
-type private EstimateScore<'T> = 'T -> 'T -> float
-
 type Solver<'T when 'T : comparison> =
     {
         OpenNodes: OrderedList<float, 'T>
@@ -19,9 +15,9 @@ type Solver<'T when 'T : comparison> =
         OriginNode: 'T
         DestinationNode: 'T
         CurrentNode: 'T
-        GetNeighbors: GetNeighbors<'T>
-        CalcScore: CalcScore<'T>
-        EstimateScore: EstimateScore<'T>
+        GetNeighbors: 'T -> 'T list
+        CalcScore: 'T -> 'T -> float
+        EstimateScore: 'T -> 'T -> float
         Ticks: int
         Thoroughness: float
         MaxTicks: int
