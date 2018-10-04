@@ -1,13 +1,12 @@
 ﻿// Learn more about F# at http://fsharp.org
 
 namespace FAStarInteractiveTest
+open System
+open System.Threading
+open FAStar
+open SimpleWorld
 
 module Main =
-    open System
-    open System.Threading
-    open FAStar
-    open SimpleWorld
-
     let private debug(solver: Solver<SimpleWorld.Position>) =
         ()
 //        if not (solver.CurrentNode = solver.OriginNode) && not (solver.CurrentNode = solver.DestinationNode) then

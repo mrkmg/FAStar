@@ -9,18 +9,15 @@ type OrderedArray<'k, 'v when 'v : comparison> =
     }
 
 module OrderedArray =
-    let internal presortedArrayInsert item lookup arr =
+    let internal presortedArrayInsert (item: 'T) lookup (arr: 'T[]) =
         let iVal = lookup item
-        let maxIndex = Array.length arr
+        match Array.tryFindIndex (fun i -> iVal < lookup i) arr with
+            | Some index -> Array.concat [ arr.[0 .. (index - 1)]; [|item|]; arr.[(index)..] ]
+            | None -> Array.append arr [|item|]
 
-        let rec inSortAdd index =
-            if index = maxIndex then Array.append arr [|item|]
-            else
-                if iVal < lookup arr.[index] then
-                    if index = 0 then Array.append [|item|] arr
-                    else Array.concat [ arr.[0 .. (index - 1)]; [|item|]; arr.[(index)..] ]
-                else inSortAdd (index + 1)
-        inSortAdd 0
+    let contains value queue = Map.containsKey value queue.Keys
+    let count queue = Array.length queue.Arr
+    let head queue = Array.head queue.Arr
 
     let empty =
         {
@@ -34,22 +31,17 @@ module OrderedArray =
         {
             queue with
                 Keys = keyMap
-                Arr = if Map.containsKey value queue.Keys then
+                Arr = if contains value queue then
                             Array.sortBy (lookup) queue.Arr
                         else
                             presortedArrayInsert value (lookup) queue.Arr
         }
 
-    let contains value queue = Map.containsKey value queue.Keys
-
-    let count queue = Array.length queue.Arr
-    let head queue = Array.head queue.Arr
-    let tail queue = {
-        queue with
-            Keys = queue.Keys |> Map.remove (Array.head queue.Arr)
-            Arr = Array.tail queue.Arr
-    }
-
-    let pop queue =
-        (head queue, tail queue)
+    let tail queue =
+        {
+            queue with
+                Keys = queue.Keys |> Map.remove (Array.head queue.Arr)
+                Arr = Array.tail queue.Arr
+        }
+    let pop queue = (head queue, tail queue)
 
