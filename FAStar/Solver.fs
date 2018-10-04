@@ -1,21 +1,21 @@
 namespace FAStar
 
 open System
+open System.Collections.Specialized
 open Helpers
 
 type SolverStatus = Open | Solved | Unsolveable | TickLimitReached
 
 type private GetNeighbors<'T> = 'T -> 'T list
-type private CalcScore<'T> = 'T -> 'T -> double
-type private EstimateScore<'T> = 'T -> 'T -> double
+type private CalcScore<'T> = 'T -> 'T -> float
+type private EstimateScore<'T> = 'T -> 'T -> float
 
 type Solver<'T when 'T : comparison> =
     {
-        OpenNodes: Set<'T>
+        OpenNodes: OrderedArray<float, 'T>
         ClosedNodes: Set<'T>
         Parents: Map<'T, 'T>
-        FromScores: Map<'T, double>
-        TotalScores: Map<'T, double>
+        FromScores: Map<'T, float>
         OriginNode: 'T
         DestinationNode: 'T
         CurrentNode: 'T
@@ -33,8 +33,8 @@ type Solver<'T when 'T : comparison> =
         member this.fromScore other = this.currentFromScore + this.CalcScore this.CurrentNode other
         member this.totalScore other = (this.fromScore other ) * this.Thoroughness + (this.EstimateScore other this.DestinationNode) * (1.0 - this.Thoroughness)
         member this.isSolved = Set.contains this.DestinationNode this.ClosedNodes
-        member this.isUnsolveable = 0 = Set.count this.OpenNodes
-        member this.isValidNeighbor other = not (this.ClosedNodes.Contains(other)) && ( not (this.OpenNodes.Contains(other)) || (this.fromScore other) < this.FromScores.[other])
+        member this.isUnsolveable = 0 = OrderedArray.count this.OpenNodes
+        member this.isValidNeighbor other = not (this.ClosedNodes.Contains(other)) && ( not (OrderedArray.containsValue other this.OpenNodes) || (this.fromScore other) < this.FromScores.[other])
         member this.path =
             if not (this.isSolved) then []
             else
@@ -46,16 +46,16 @@ type Solver<'T when 'T : comparison> =
                 buildNodes this.DestinationNode [] |> List.rev
 
 
+[<RequireQualifiedAccess>]
 module Solver =
     let create origin destination getNeigbors calcScore estimateScore =
         {
-            OpenNodes = Set.empty |> Set.add origin
+            OpenNodes = OrderedArray.empty |> OrderedArray.add 0.0 origin
             ClosedNodes = Set.empty
             Parents = Map.empty
             OriginNode = origin
             DestinationNode = destination
-            FromScores = Map.empty |> Map.add origin (double 0)
-            TotalScores = Map.empty |> Map.add origin (double 0)
+            FromScores = Map.empty |> Map.add origin 0.0
             CurrentNode = origin
             GetNeighbors = getNeigbors
             CalcScore = calcScore
@@ -67,46 +67,45 @@ module Solver =
             Status = Open
         }
 
-    let private setCurrentNode (state: Solver<'T>) =
-        let next = state.OpenNodes |> Set.toSeq |> Seq.sortBy (fun t -> state.TotalScores.[t]) |> Seq.head // TODO - Make better
+    let private setCurrentNode (solver: Solver<'T>) =
+        let next = solver.OpenNodes |> OrderedArray.head
         {
-            state with
+            solver with
                 CurrentNode = next
-                OpenNodes = state.OpenNodes |> Set.remove next
-                ClosedNodes = state.ClosedNodes |> Set.add next
+                OpenNodes = solver.OpenNodes |> OrderedArray.tail
+                ClosedNodes = solver.ClosedNodes |> Set.add next
         }
 
-    let private processNeighbor (state: Solver<'T>) neighbor =
+    let private processNeighbor (solver: Solver<'T>) neighbor =
         { 
-            state with 
-                OpenNodes = state.OpenNodes.Add neighbor
-                Parents = state.Parents |> Map.add neighbor state.CurrentNode
-                FromScores = state.FromScores |> Map.add neighbor (state.fromScore neighbor)
-                TotalScores = state.TotalScores |> Map.add neighbor (state.totalScore neighbor)
+            solver with
+                OpenNodes = solver.OpenNodes |> OrderedArray.add (solver.totalScore neighbor) neighbor
+                Parents = solver.Parents |> Map.add neighbor solver.CurrentNode
+                FromScores = solver.FromScores |> Map.add neighbor (solver.fromScore neighbor)
         }
 
-    let private processNeighbors (state: Solver<'T>) =
-         state.neighbors |> List.where state.isValidNeighbor |> List.fold processNeighbor state 
+    let private processNeighbors (solver: Solver<'T>) =
+         solver.neighbors |> List.where solver.isValidNeighbor |> List.fold processNeighbor solver
 
-    let private checkStatus (state: Solver<'T>) =
-        match state with
+    let private checkStatus (solver: Solver<'T>) =
+        match solver with
         | s when s.isSolved -> Solved
         | s when s.Ticks > s.MaxTicks -> TickLimitReached
         | s when s.isUnsolveable -> Unsolveable
-        | _ -> state.Status
+        | _ -> solver.Status
 
-    let private postProcess (state: Solver<'T>) =
+    let private postProcess (solver: Solver<'T>) =
         {
-            state with
-                Ticks = state.Ticks + 1
-                Status = checkStatus state
-        } |> tap state.Iter
+            solver with
+                Ticks = solver.Ticks + 1
+                Status = checkStatus solver
+        } |> tap solver.Iter
 
-    let tick (state: Solver<'T>) =
-        if not (state.Status = Open) then state
-        else state |> setCurrentNode |> processNeighbors |> postProcess
+    let tick (solver: Solver<'T>) =
+        if not (solver.Status = Open) then solver
+        else solver |> setCurrentNode |> processNeighbors |> postProcess
 
-    let rec solve (state: Solver<'T>) =
-        match tick state with
+    let rec solve (solver: Solver<'T>) =
+        match tick solver with
             | nextState when nextState.Status = Open -> solve nextState
-            | nextState -> nextState 
+            | nextState -> nextState

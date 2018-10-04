@@ -8,10 +8,10 @@ module Main =
     open FAStar
     open SimpleWorld
 
-    let private debug(state: Solver<SimpleWorld.Position>) =
+    let private debug(solver: Solver<SimpleWorld.Position>) =
         ()
-       //if not (state.CurrentNode = state.OriginNode) && not (state.CurrentNode = state.DestinationNode) then
-       //     Display.debugCurrentNode() state.CurrentNode
+//       if not (solver.CurrentNode = solver.OriginNode) && not (solver.CurrentNode = solver.DestinationNode) then
+//       Display.debugCurrentNode() solver.CurrentNode
 
     let private createSolver origin destination thoroughness (world: SimpleWorld.World)=
         {
@@ -76,15 +76,15 @@ module Main =
             Display.printMessage() (i.ToString())
             Display.debugEndPointNode() origin
             Display.debugEndPointNode() destination
-            let state = Solver.solve (createSolver origin destination i world)
-            match state.Status with
+            let solver = Solver.solve (createSolver origin destination i world)
+            match solver.Status with
                 | Unsolveable -> do Display.displayError() "Unsolveable"
                 | TickLimitReached -> do Display.displayError() "Tick Limit Reached"
                 | Solved -> 
-                    Display.printPath() state.path
-                    listOfPaths <- List.append listOfPaths [state]
+                    Display.printPath() solver.path
+                    listOfPaths <- List.append listOfPaths [solver]
                 | _ -> raise (Exception "How did I get here")
-            for n in state.ClosedNodes do Display.printNode() n
+            for n in solver.ClosedNodes do Display.printNode() n
 
         showResults thoroughnesses listOfPaths
 
