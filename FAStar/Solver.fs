@@ -24,27 +24,15 @@ type Solver<'T when 'T : comparison> =
         Status: SolverStatus
         Iter: Solver<'T> -> unit
     } with
-        member this.currentFromScore = this.FromScores.[this.CurrentNode]
-        member this.neighbors = this.GetNeighbors this.CurrentNode
-        member this.fromScore other = this.currentFromScore + this.CalcScore this.CurrentNode other
-        member this.totalScore other = (this.fromScore other ) * this.Thoroughness + (this.EstimateScore other this.DestinationNode) * (1.0 - this.Thoroughness)
-        member this.isSolved = Set.contains this.DestinationNode this.ClosedNodes
-        member this.isUnsolveable = 0 = OrderedList.count this.OpenNodes
-        member this.isValidNeighbor other =
-            not (this.ClosedNodes.Contains(other)) &&
-            (
-                not (OrderedList.contains other this.OpenNodes) ||
-                (this.fromScore other) < this.FromScores.[other]
-            )
-        member this.path =
-            if not (this.isSolved) then []
+        member this.Path =
+            if not (this.Status = Solved) then []
             else
                 let rec buildNodes cNode (arr: 'T list) =
                     if this.Parents.ContainsKey cNode then
                         buildNodes this.Parents.[cNode] (cNode :: arr)
                     else
                         arr
-                buildNodes this.DestinationNode [] |> List.rev
+                buildNodes this.DestinationNode []
 
 
 [<RequireQualifiedAccess>]
@@ -68,6 +56,19 @@ module Solver =
             Status = Open
         }
 
+    let private currentFromScore solver = solver.FromScores.[solver.CurrentNode]
+    let private neighbors solver = solver.GetNeighbors solver.CurrentNode
+    let private fromScore solver other = (currentFromScore solver) + (solver.CalcScore solver.CurrentNode other)
+    let private totalScore solver other = (fromScore solver other) * solver.Thoroughness + (solver.EstimateScore other solver.DestinationNode) * (1.0 - solver.Thoroughness)
+    let private isSolved solver = solver.ClosedNodes.Contains(solver.DestinationNode)
+    let private isUnsolveable solver = OrderedList.count solver.OpenNodes = 0
+    let private isValidNeighbor solver other =
+        not (solver.ClosedNodes.Contains(other)) &&
+        (
+            not (OrderedList.contains other solver.OpenNodes) ||
+            (fromScore solver other) < solver.FromScores.[other]
+        )
+
     let private setCurrentNode (solver: Solver<'T>) =
         let (c, n) = solver.OpenNodes |> OrderedList.pop
         {
@@ -80,19 +81,19 @@ module Solver =
     let private processNeighbor (solver: Solver<'T>) neighbor =
         { 
             solver with
-                OpenNodes = solver.OpenNodes |> OrderedList.add (solver.totalScore neighbor) neighbor
+                OpenNodes = solver.OpenNodes |> OrderedList.add (totalScore solver neighbor) neighbor
                 Parents = solver.Parents |> Map.add neighbor solver.CurrentNode
-                FromScores = solver.FromScores |> Map.add neighbor (solver.fromScore neighbor)
+                FromScores = solver.FromScores |> Map.add neighbor (fromScore solver neighbor)
         }
 
     let private processNeighbors (solver: Solver<'T>) =
-         solver.neighbors |> List.where solver.isValidNeighbor |> List.fold processNeighbor solver
+         neighbors solver |> List.where (isValidNeighbor solver) |> List.fold processNeighbor solver
 
     let private checkStatus (solver: Solver<'T>) =
         match solver with
-            | s when s.isSolved -> Solved
+            | s when isSolved s -> Solved
             | s when s.Ticks > s.MaxTicks -> TickLimitReached
-            | s when s.isUnsolveable -> Unsolveable
+            | s when isUnsolveable s -> Unsolveable
             | _ -> solver.Status
 
     let private postProcess (solver: Solver<'T>) =

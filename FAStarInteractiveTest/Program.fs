@@ -27,7 +27,7 @@ module Main =
         let rec c t (l: SimpleWorld.Position) (r: SimpleWorld.Position list) =
             match r with
             | [] -> t
-            | _ -> c (t + r.Head.costTo l) r.Head r.Tail
+            | _ -> c (t + l.costTo r.Head) r.Head r.Tail
         c 0.0 origin path
 
     let private isNumInput (consoleKeyInfo: ConsoleKeyInfo) =
@@ -40,6 +40,7 @@ module Main =
             match world.Positions.[random.Next(world.Positions.Count - 1)] with
             | p when not (p.Type = SimpleWorld.Wall) -> p
             | _ -> chooseRandomNode()
+        Display.printNodes() (Map.toList world.Positions |> List.map (fun (k, v) -> v))
         {
             World = world
             Origin = chooseRandomNode()
@@ -65,20 +66,17 @@ module Main =
         Display.printMessage() (t.Thoroughness.ToString())
         Display.debugEndPointNode() instance.Origin
         Display.debugEndPointNode() instance.Destination
-        let solver = Solver.solve t
-        match solver.Status with
-            | Unsolveable -> do Display.displayError() "Unsolveable"
-            | TickLimitReached -> do Display.displayError() "Tick Limit Reached"
-            | Solved ->
-                Display.printPath() solver.path
-            | _ -> raise (Exception "How did I get here")
-        for n in solver.ClosedNodes do Display.printNode() n
-        solver
+        match Solver.solve t with
+        | {Status = Unsolveable} -> Display.displayError() "Unsolveable"; None
+        | {Status = TickLimitReached} -> Display.displayError() "Tick Limit Reached"; None
+        | {Status = Solved} as s ->
+            for n in s.ClosedNodes do Display.printNode() n
+            Some s
+        | _ -> raise (Exception "How did I get here")
 
     let solveSolvers instance =
-        Display.printNodes() (Map.toList instance.World.Positions |> List.map (fun (k, v) -> v))
         {
-            instance with Results = List.map (solve instance) instance.Results
+            instance with Results = List.map (solve instance) instance.Results |> List.where (fun t -> t.IsSome) |> List.map (fun t -> t.Value)
         }
 
     let printResult instance offset thoroughness (result: Solver<SimpleWorld.Position>) isShowing =
@@ -88,7 +86,7 @@ module Main =
         Console.ForegroundColor <- ConsoleColor.White
         Console.Write("                 ")
         Console.CursorLeft <- 0
-        Console.Write ((string thoroughness) + "\t" + (string (calcCostOfPath instance.Origin result.path |> int)) + "\t" + (string (result.Ticks)))
+        Console.Write ((string thoroughness) + "\t" + (string (calcCostOfPath instance.Origin result.Path |> int)) + "\t" + (string (result.Ticks)))
 
     let promptResults instance =
         let rec k last next =
@@ -96,10 +94,14 @@ module Main =
             for result in instance.Results do
                 printResult instance i instance.Thoroughnesses.[i] result (i = next)
                 i <- i + 1
-            for n in instance.Results.[last].path do Display.printNode() n
-            Display.printPath() instance.Results.[next].path
+            for n in instance.Results.[last].Path do Display.printNode() n
+            Display.printPath() instance.Results.[next].Path
+            Display.printMessage() "0-9 for path, Enter for next map, Q to quit"
+            Display.debugEndPointNode() instance.Origin
+            Display.debugEndPointNode() instance.Destination
             match Console.ReadKey(true) with
-            | ky when ky.Key = ConsoleKey.Enter || ky.Key = ConsoleKey.Q -> ()
+            | ky when ky.Key = ConsoleKey.Enter -> true
+            | ky when ky.Key = ConsoleKey.Q -> false
             | ky when (isNumInput ky) ->
                 let n = ky.KeyChar |> string |> int
                 if n >=0 && n < instance.Results.Length then k next n
@@ -109,9 +111,11 @@ module Main =
 
     [<EntryPoint>]
     let main argv =
+        Console.CursorVisible <- false
         Console.ForegroundColor <- ConsoleColor.White
         Console.BackgroundColor <- ConsoleColor.Black
         Console.Clear()
-        while Display.promptToContinue() do
-            createInstance() |> createSolvers |> solveSolvers |> promptResults
+        let mutable cont = true
+        while cont do
+            cont <- createInstance() |> createSolvers |> solveSolvers |> promptResults
         0

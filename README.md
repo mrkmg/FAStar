@@ -32,9 +32,13 @@ let initialState = {
 	MaxTicks = 4000
 ```
 
-Once you have a Solver.State instance, you can run it through the solver to get a solved state back. Be sure to catch for errors.
+Once you have a `Solver<'T>` instance, you can run it through the solver to get a solved state back.
 
 ```fsharp
+match FAStar.Solver.solve initialState with
+| s when s.Status = Solved -> processSolvedState s
+| s when s.Status = 
+
 try
 	let solvedState = FAStar.Solver.solve initialState
 with
@@ -51,45 +55,54 @@ let path = solvedState.path
 
 ## Documentation
 
-### Solver.State<'T when 'T : comparison>
+### Solver<'T when 'T : comparison>
 
 A Type
 
-The `Solver.State<'T>` represents the state of the A* solver. You can set a few items on the solver in order to tailor the A* solver to your needs.
+The `Solver<'T>` represents the state of the A* solver. You can set a few items on the solver in order to tailor the A* solver to your needs.
+
+Adjustable Properties
 
 - **Thoroughness**: `float`
 	+ This is a factor from 0 to 1 of how thorough the search is. A thoroughness of 0 is the least thorough and equivalent to a "Greedy First" search. A thoroughness of 1 is the most thorough and equivalent to Dijkstra (Breadth-first) search. Values below 0 or above 1 will lead to undefined results.
 - **MaxTicks**: `int`
 	+ The maximum number of nodes to check before giving up. This is useful if you want to prevent a search from taking too long. By default it is `Int32.MaxValue`, so be careful with very large graphs.
-- **Iter**: `Solver.State<'T> -> unit`
+- **Iter**: `Solver<'T> -> unit`
 	+ A callback function which is executed after each tick of the solver. This is useful for debugging.
 	
-`Solver.State<'T>` also has some members you to get information about the current state.
+`Solver<'T>` also has some properties you to get information about the current state.
 
-- **path**: `List<'T>`
-	+ The completed path. Will raise `Solver.NotPathable` is the state is not solved.
-- **isSolved**: `bool`
-	+ True if the current state is solved.
-- **isUnsolvable**: `bool`
-	+ True if the current state is unsolvable.
+- **Status** : SolverStatus = Open | Solved | Unsolveable | TickLimitReached
+	+ The status of the Solver. 
+- **Path**: `List<'T>`
+	+ The completed path. Will return an empty list if the `Status` is not `Solved.`
+	
+
 	
 ### Solver.create
 
-An expression: `'T -> 'T -> ( 'T -> List<'Node>) -> ('T -> 'T -> double) -> ('T -> 'T -> double) -> Solver.State<'T>`
+An expression: `origin:'T -> destination:'T -> getNeighbors:( 'T -> List<'T>) -> calcCost:('T -> 'T -> double) -> estimateCost:('T -> 'T -> double) -> Solver<'T>`
 
-The `Solver.create` function will create a new Solver State. It takes in an origin, destination, getNeighborsFunction, calcCostFunction, and estimateCostFunction. It will return a `Solver.State` which is ready to be solved.
+The `Solver.create` function will create a new Solver State. It takes in an origin, destination, getNeighbors, calcCost, and estimateCost. It will return a `Solver<'T>` which is ready to be solved.
+
+getNeighbors should take in a 'T, and return a list of 'T which contains 'T that can be traveled to from the input 'T
+
+calcCost should calculate the cost to travel from the first 'T to the second 'T. Order is important is the cost is not symmetrical.
+
+estimateCost should estimate the cost to to travel from the first 'T to the second 'T. The better this estimate is, the better the solver will operate.
+
 
 ### Solver.tick
 
-An expression: `Solver.State<'T> -> Solver.State<'T>`
+An expression: `Solver<'T> -> Solver<'T>`
 
-This will tick the solver and check the next node. Could raise `Solver.MaxTickReached`, `Solver.Unsolveable`, or `Solver.AlreadySolved`.
+This will tick the solver and check the next node in the graph and update the `Status` field in the `Solver<'T>`
 
 ### Solver.solve
 
-An expression: `Solver.State<'T> -> Solve.State<'T>`
+An expression: `Solver<'T> -> Solve<'T>`
 
-This will tick the solver until it's solved and return the solved state. Could raise `Solver.MaxTickReached` or `Solver.Unsolveable`.
+This will tick the solver until it's either solved, found to be unsolveable, or reached the max tick limit.
 
 
 ## License

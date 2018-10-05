@@ -4,8 +4,8 @@ module SimpleWorld =
     open SharpNoise
     open System
 
-    let private teleportFactor = 200
-    let private factor = 4.0
+    let private teleportFactor = 400
+    let private factor = 16.0
     let private cFactor i = factor ** i
     let private sq (i: float) = i * i
     let private dist x1 x2 y1 y2 =
@@ -48,20 +48,18 @@ module SimpleWorld =
         } with
         member this.getAt x y = this.Positions.[getIndexFromXy x y this.Width]
         member this.neighbors position =
-            List.append [
-                (position.X - 1, position.Y)
-                (position.X + 1, position.Y)
-                (position.X, position.Y - 1)
-                (position.X, position.Y + 1)
-                (position.X - 1, position.Y - 1)
-                (position.X - 1, position.Y + 1)
-                (position.X + 1, position.Y - 1)
-                (position.X + 1, position.Y + 1)
-            ] (
-                  match position.TeleportPosition with
-                  | Some i -> [getXyFromIndex i this.Width]
-                  | None -> []
-              )
+            match position.Type with
+                | Teleporter -> [getXyFromIndex position.TeleportPosition.Value this.Width]
+                | _ -> [
+                           (position.X - 1, position.Y)
+                           (position.X + 1, position.Y)
+                           (position.X, position.Y - 1)
+                           (position.X, position.Y + 1)
+                           (position.X - 1, position.Y - 1)
+                           (position.X - 1, position.Y + 1)
+                           (position.X + 1, position.Y - 1)
+                           (position.X + 1, position.Y + 1)
+                       ]
             |> List.where (fun (x, y) -> x >= 0 && x <= (this.Width - 1) && y >= 0 && y <= (this.Height - 1))
             |> List.map (fun (x, y) -> this.getAt x y)
             |> List.where (fun t -> not (t.Type = Wall))

@@ -1,6 +1,7 @@
 namespace FAStarInteractiveTest
 
 module Display =
+    open System.Threading
     open System.Drawing
     open System
     open SimpleWorld.SimpleWorld
@@ -10,8 +11,8 @@ module Display =
     let private defaultForeground = ConsoleColor.White
     let private errorBackground = ConsoleColor.Red
     let private errorForeground = ConsoleColor.White
-    let private pathForeground = ConsoleColor.Blue
-    let private endpointForground = ConsoleColor.Magenta
+    let private pathForeground = ConsoleColor.Red
+    let private endpointForground = ConsoleColor.Blue
     let private debugPointForeground = ConsoleColor.Red
 
     let drawAt() (x: int) (y: int) (c: char) =
@@ -86,6 +87,7 @@ module Display =
         for node in nodes do
             Console.BackgroundColor <- getColorForNode node
             drawAt() node.X node.Y fillerChar
+            Thread.Sleep 20
 
     let debugCurrentNode() (node: Position) =
         Console.BackgroundColor <- getColorForNode node
