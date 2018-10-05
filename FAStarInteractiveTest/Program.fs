@@ -50,11 +50,11 @@ module Main =
         }
 
     let createSolver origin destination thoroughness (world: SimpleWorld.World)=
-            {
-                Solver.create origin destination (world.neighbors) (fun f t -> f.costTo t) (fun f t -> f.distanceTo t) with
-                    Iter = (debug)
-                    Thoroughness = thoroughness
-            }
+        {
+            Solver.create origin destination (world.neighbors) (fun f t -> f.costTo t) (fun f t -> f.distanceTo t) with
+                Iter = (debug)
+                Thoroughness = thoroughness
+        }
 
     let createSolvers instance =
         let cs t = createSolver instance.Origin instance.Destination t instance.World
