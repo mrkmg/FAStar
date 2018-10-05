@@ -23,12 +23,12 @@ module Main =
             do Display.debugCurrentNode() solver.CurrentNode
         else ()
 
-    let private calcCostOfPath (path: SimpleWorld.Position list) =
-        let rec c t (l: SimpleWorld.Position) r =
+    let private calcCostOfPath origin (path: SimpleWorld.Position list) =
+        let rec c t (l: SimpleWorld.Position) (r: SimpleWorld.Position list) =
             match r with
             | [] -> t
-            | _ -> c (t + l.costTo r.Head) r.Head r.Tail
-        c 0.0 path.Head path.Tail
+            | _ -> c (t + r.Head.costTo l) r.Head r.Tail
+        c 0.0 origin path
 
     let private isNumInput (consoleKeyInfo: ConsoleKeyInfo) =
         List.contains  consoleKeyInfo.KeyChar ['1'; '2'; '3'; '4'; '5'; '6'; '7'; '8'; '9'; '0']
@@ -40,18 +40,17 @@ module Main =
             match world.Positions.[random.Next(world.Positions.Count - 1)] with
             | p when not (p.Type = SimpleWorld.Wall) -> p
             | _ -> chooseRandomNode()
-
         {
             World = world
             Origin = chooseRandomNode()
             Destination = chooseRandomNode()
-            Thoroughnesses = [0.0; 0.1; 0.2; 0.3; 0.35; 0.4; 0.45; 0.5;]
+            Thoroughnesses = [0.0; 0.1; 0.2; 0.3; 0.35; 0.4; 0.45; 0.5; 1.0]
             Results = List.empty
         }
 
     let createSolver origin destination thoroughness (world: SimpleWorld.World)=
             {
-                Solver.create origin destination (world.neighbors) (fun t -> t.costTo) (fun t -> t.distanceTo) with
+                Solver.create origin destination (world.neighbors) (fun f t -> f.costTo t) (fun f t -> f.distanceTo t) with
                     Iter = (debug)
                     Thoroughness = thoroughness
             }
@@ -82,31 +81,30 @@ module Main =
             instance with Results = List.map (solve instance) instance.Results
         }
 
-    let printResult offset thoroughness (result: Solver<SimpleWorld.Position>) isShowing =
+    let printResult instance offset thoroughness (result: Solver<SimpleWorld.Position>) isShowing =
         Console.CursorTop <- offset
         Console.CursorLeft <- 0
         Console.BackgroundColor <- if isShowing then ConsoleColor.Cyan else ConsoleColor.Black
         Console.ForegroundColor <- ConsoleColor.White
-        Console.Write("                                          ")
+        Console.Write("                 ")
         Console.CursorLeft <- 0
-        Console.Write ((string thoroughness) + "\t" + (string (calcCostOfPath result.path |> int)) + "\t" + (string (result.Ticks)))
+        Console.Write ((string thoroughness) + "\t" + (string (calcCostOfPath instance.Origin result.path |> int)) + "\t" + (string (result.Ticks)))
 
     let promptResults instance =
         let rec k last next =
             let mutable i = 0
             for result in instance.Results do
-                printResult i instance.Thoroughnesses.[i] result (i = next)
+                printResult instance i instance.Thoroughnesses.[i] result (i = next)
                 i <- i + 1
             for n in instance.Results.[last].path do Display.printNode() n
             Display.printPath() instance.Results.[next].path
-            match Console.ReadKey() with
+            match Console.ReadKey(true) with
             | ky when ky.Key = ConsoleKey.Enter || ky.Key = ConsoleKey.Q -> ()
             | ky when (isNumInput ky) ->
                 let n = ky.KeyChar |> string |> int
                 if n >=0 && n < instance.Results.Length then k next n
                 else k last next
             | _ -> k last next
-
         k 0 0
 
     [<EntryPoint>]

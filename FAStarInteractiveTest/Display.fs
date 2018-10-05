@@ -35,6 +35,7 @@ module Display =
         | PositionType.Path -> 'P'
         | PositionType.Grass -> 'G'
         | PositionType.Rock -> 'R'
+        | PositionType.Teleporter -> 'T'
 
     let getColorForNode (node: Position) =
         match node.Type with
@@ -42,6 +43,7 @@ module Display =
         | PositionType.Path -> ConsoleColor.White
         | PositionType.Rock -> ConsoleColor.DarkGray
         | PositionType.Grass -> ConsoleColor.Green
+        | PositionType.Teleporter -> ConsoleColor.DarkYellow
 
     let promptToContinue() =
         Console.BackgroundColor <- defaultBackground

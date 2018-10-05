@@ -90,10 +90,10 @@ module Solver =
 
     let private checkStatus (solver: Solver<'T>) =
         match solver with
-        | s when s.isSolved -> Solved
-        | s when s.Ticks > s.MaxTicks -> TickLimitReached
-        | s when s.isUnsolveable -> Unsolveable
-        | _ -> solver.Status
+            | s when s.isSolved -> Solved
+            | s when s.Ticks > s.MaxTicks -> TickLimitReached
+            | s when s.isUnsolveable -> Unsolveable
+            | _ -> solver.Status
 
     let private postProcess (solver: Solver<'T>) =
         {
