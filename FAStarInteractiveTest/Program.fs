@@ -115,7 +115,10 @@ module Main =
         Console.ForegroundColor <- ConsoleColor.White
         Console.BackgroundColor <- ConsoleColor.Black
         Console.Clear()
-        let mutable cont = true
-        while cont do
-            cont <- createInstance() |> createSolvers |> solveSolvers |> promptResults
+
+        let rec run = function 
+            | true -> createInstance() |> createSolvers |> solveSolvers |> promptResults |> run
+            | false -> false
+        run true |> ignore
         0
+

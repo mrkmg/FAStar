@@ -1,7 +1,6 @@
 namespace FAStar
 
 open System
-open System.Collections.Specialized
 open Helpers
 
 type SolverStatus = Open | Solved | Unsolveable | TickLimitReached
@@ -37,7 +36,7 @@ type Solver<'T when 'T : comparison> =
 
 [<RequireQualifiedAccess>]
 module Solver =
-    let create origin destination getNeigbors calcScore estimateScore =
+    let create (origin: 'T when 'T : comparison) destination getNeigbors calcScore estimateScore =
         {
             OpenNodes = OrderedList.empty |> OrderedList.add 0.0 origin
             ClosedNodes = Set.empty

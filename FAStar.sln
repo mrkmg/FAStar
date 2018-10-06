@@ -9,7 +9,7 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FAStarInteractiveTest", "FA
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "SimpleWorld", "SimpleWorld\SimpleWorld.fsproj", "{C6AAC8D7-C086-4A05-88C1-F549A616603B}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FAStarTestExport", "FAStarTestExport\FAStarTestExport.fsproj", "{76E8D838-8777-4FE5-B4FE-3AAE64450CE9}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FAStarTestExport", "FAStarTestExport\FAStarTestExport.fsproj", "{76E8D838-8777-4FE5-B4FE-3AAE64450CE9}"
 EndProject
 Global
 	GlobalSection(Performance) = preSolution
@@ -42,5 +42,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {66C7E18F-81A9-4ACC-9254-5EF14873F698}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
