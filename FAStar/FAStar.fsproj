@@ -10,8 +10,4 @@
         <Compile Include="Solver.fs" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Imms.FSharp" Version="0.7.0" />
-    </ItemGroup>
-
 </Project>

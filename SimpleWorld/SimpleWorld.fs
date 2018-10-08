@@ -72,8 +72,10 @@ module SimpleWorld =
     let private typeBound1 = 0 |> float32
     let private typeBound2 = 0.5 |> float32
 
+    let random = new Random()
+
     let private getTypeFromVal v =
-        if (new Random()).Next(teleportFactor) = 1 then Teleporter
+        if random.Next(teleportFactor) = 1 then Teleporter
         else
             match v with
                 | t when t < typeBound0 -> Wall

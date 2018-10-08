@@ -1,18 +1,22 @@
 ﻿<Project Sdk="FSharp.NET.Sdk;Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
     <RootNamespace>LargerInteractive</RootNamespace>
     <PackageVersion>1.0</PackageVersion>
     <Title>LargerInteractive</Title>
     <Copyright>Copyright © 2018</Copyright>
     <Description>Description of LargerInteractive</Description>
+    <TargetFramework>net471</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="DrawWidget.fs" />
+    <Compile Include="State.fs" />
     <Compile Include="MainForm.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\FAStar\FAStar.fsproj" />
+    <ProjectReference Include="..\..\SimpleWorld\SimpleWorld.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
