@@ -26,15 +26,14 @@ type OrderedItem<'k, 'v when 'k : comparison and 'v: comparison> =
 
 type OrderedList<'k, 'v when 'v : comparison and 'k : comparison>(items: OrderedItem<'k, 'v> list, knownItems: Set<'v>)  =
     let _insert (item: OrderedItem<'k, 'v>) =
-        let isReplace = Set.contains item.Value knownItems
-        let rec __insert pending ret (rem: OrderedItem<'k, 'v> list) =
-            match rem with
-                | [] -> (if pending then item :: ret else ret) |> List.rev
-                | _ :: _ when not (pending || isReplace) -> List.append (List.rev ret) rem
-                | head :: tail when isReplace && head.Value = item.Value -> __insert pending ret tail
-                | head :: _ when pending && item.Key < head.Key -> __insert false (item :: ret) rem
-                | head :: tail -> __insert pending (head :: ret) tail
-        __insert true [] items
+        let rec __insert isReplace isPending ret (rem: OrderedItem<'k, 'v> list) =
+            match (isReplace, isPending, rem) with
+            | (_,    true,  []          )                              -> item :: ret |> List.rev
+            | (_,    false, []          )                              -> ret |> List.rev
+            | (_,    true,  head :: _   ) when item.Key <= head.Key    -> __insert isReplace false (item :: ret) rem
+            | (true, _,     head :: tail) when head.Value = item.Value -> __insert false isPending ret tail
+            | (_,    _,     head :: tail)                              -> __insert isReplace isPending (head :: ret) tail
+        __insert (Set.contains item.Value knownItems) true [] items
 
     member __.contains (value: 'v) = Set.contains value knownItems
     member __.count = Set.count knownItems

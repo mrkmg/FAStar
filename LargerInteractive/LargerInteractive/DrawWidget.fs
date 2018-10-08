@@ -17,11 +17,11 @@ type DrawWidget (width: int, height: int, scale: int) as this =
         | SimpleWorld.Rock       -> Color.FromRgb(0x555555)
         | _                      -> Color.FromRgb(0x000000)
 
-    let blendColor t =
+    let typeColor pos t =
         match t with
-        | Current -> Color.FromArgb(0x99FF0000)
-        | Path -> Color.FromArgb(0x99FF0000)
-        | EndPoint -> Color.FromArgb(0x990000FF)
+        | Current -> Color.Blend(positionColor pos, Color.FromArgb(0x99FF0000))
+        | Path -> Color.Blend(positionColor pos, Color.FromArgb(0x99FF0000))
+        | EndPoint -> Color.FromRgb(0xFF0000)
 
     let sourceBitmap = new Bitmap(width * scale, height * scale, PixelFormat.Format24bppRgb)
     let drawHandle (g: Graphics) = g.DrawImage(sourceBitmap, float32 0.0, float32 0.0)
@@ -41,6 +41,6 @@ type DrawWidget (width: int, height: int, scale: int) as this =
         this.Invalidate()
 
     member this.drawPosition (pos: SimpleWorld.Position) = this.setPixel pos.X pos.Y (positionColor pos)
-    member this.drawPositionType (pos: SimpleWorld.Position) t = this.setPixel pos.X pos.Y (Color.Blend(positionColor pos, blendColor t))
+    member this.drawPositionType (pos: SimpleWorld.Position) t = this.setPixel pos.X pos.Y (typeColor pos t)
     member this.drawAll (posList: SimpleWorld.Position list) = for pos in posList do this.drawPosition pos
     member this.drawAllType (posList: SimpleWorld.Position list) t = for pos in posList do this.drawPositionType pos t

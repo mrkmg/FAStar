@@ -4,7 +4,7 @@ module SimpleWorld =
     open SharpNoise
     open System
 
-    let private teleportFactor = 800
+    let private teleportFactor = 4000
     let private factor = 16.0
     let private cFactor i = factor ** i
     let private sq (i: float) = i * i
