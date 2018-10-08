@@ -11,6 +11,10 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "SimpleWorld", "SimpleWorld\
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FAStarTestExport", "FAStarTestExport\FAStarTestExport.fsproj", "{76E8D838-8777-4FE5-B4FE-3AAE64450CE9}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "LargerInteractive", "LargerInteractive\LargerInteractive\LargerInteractive.fsproj", "{53B64A93-31B9-4005-AF0A-829A07A00C5D}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "LargerInteractive.Desktop", "LargerInteractive\LargerInteractive.Desktop\LargerInteractive.Desktop.fsproj", "{4EEB32A7-D80A-45F1-9E14-15F87BE27240}"
+EndProject
 Global
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
@@ -36,12 +40,23 @@ Global
 		{76E8D838-8777-4FE5-B4FE-3AAE64450CE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76E8D838-8777-4FE5-B4FE-3AAE64450CE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76E8D838-8777-4FE5-B4FE-3AAE64450CE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53B64A93-31B9-4005-AF0A-829A07A00C5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53B64A93-31B9-4005-AF0A-829A07A00C5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53B64A93-31B9-4005-AF0A-829A07A00C5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53B64A93-31B9-4005-AF0A-829A07A00C5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EEB32A7-D80A-45F1-9E14-15F87BE27240}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EEB32A7-D80A-45F1-9E14-15F87BE27240}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EEB32A7-D80A-45F1-9E14-15F87BE27240}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EEB32A7-D80A-45F1-9E14-15F87BE27240}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {66C7E18F-81A9-4ACC-9254-5EF14873F698}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

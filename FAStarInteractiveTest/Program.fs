@@ -21,6 +21,7 @@ module Main =
     let private debug(solver: Solver<SimpleWorld.Position>) =
         if doDebug && not (solver.CurrentNode = solver.OriginNode) && not (solver.CurrentNode = solver.DestinationNode) then
             do Display.debugCurrentNode() solver.CurrentNode
+            //do Thread.Sleep(1)
         else ()
 
     let private calcCostOfPath origin (path: SimpleWorld.Position list) =

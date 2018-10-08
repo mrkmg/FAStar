@@ -16,6 +16,24 @@ type WorldInstance =
         Results: Solver<SimpleWorld.Position> list
     }
 
+type SUType = Init | Start | Finish
+
+let getXyForI i =
+    let width = Console.WindowWidth / 4
+    ((i % width) * 4, i / width)
+
+let cMon = new Object()
+let su i m =
+    lock cMon (fun () -> 
+        let (x, y) = getXyForI i
+        Console.CursorTop <- y
+        Console.CursorLeft <- x
+        match m with
+            | Init -> Console.BackgroundColor <- ConsoleColor.DarkBlue; Console.Write "I"
+            | Start -> Console.BackgroundColor <- ConsoleColor.DarkRed;  Console.Write "IS"
+            | Finish -> Console.BackgroundColor <- ConsoleColor.DarkGreen; Console.Write "ISF"
+    )
+
 let private calcCostOfPath origin (path: SimpleWorld.Position list) =
     let rec c t (l: SimpleWorld.Position) (r: SimpleWorld.Position list) =
         match r with
@@ -23,7 +41,8 @@ let private calcCostOfPath origin (path: SimpleWorld.Position list) =
         | _ -> c (t + l.costTo r.Head) r.Head r.Tail
     c 0.0 origin path
 
-let createInstance() width height thoroughnesses=
+let createInstance() i width height thoroughnesses=
+    su i Init
     let world = SimpleWorld.create width height
     let random = new Random()
     let rec chooseRandomNode() =
@@ -51,11 +70,11 @@ let createSolvers instance =
     }
 
 let solveSolvers i instance =
-    do Console.Write("s" + i.ToString() + " ")
+    su i Start
     let t = {
         instance with Results = List.map (Solver.solve) instance.Results
     }
-    do Console.Write("e" + i.ToString() + " ")
+    su i Finish
     t
 
 let resultToString i width height result =
@@ -67,14 +86,18 @@ let resultToString i width height result =
     (calcCostOfPath result.OriginNode result.Path).ToString() + "," +
     result.Ticks.ToString()
 
-let writeResultsToFile i width height (fileWriter: StreamWriter) instance =
-    for r in instance.Results do
-        fileWriter.WriteLine(resultToString i width height r)
+let getResults i width height instance =
+    List.map (resultToString i width height) instance.Results
 
 let parallelRun (list: 'T list) runner = ParallelEnumerable.AsParallel(list).ForAll(new Action<'T>(runner))
 
-[<EntryPoint>]
-let main argv =
+let fMon = new Object()
+let writeResults file lines =
+    lock fMon (fun () -> 
+        File.AppendAllLines(file, lines)
+    )
+
+let rec run() =
     Console.Write("Number of tests? ")
     let numOfRounds = Console.ReadLine() |> int
     Console.Write("Width? ")
@@ -82,22 +105,29 @@ let main argv =
     Console.Write("Height? ")
     let height = Console.ReadLine() |> int
 
-    if File.Exists("./test.csv") then File.Delete("./test.csv")
+    Console.Clear()
 
-    let fileWrite = File.OpenWrite("./test.csv") |> (fun t -> new StreamWriter(t))
+    let fileName = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/FAStarTests/Data.csv"
+
+    if not (File.Exists fileName) then File.WriteAllLines(fileName, ["testNum,size,estimate,thoroughness,pathLength,pathCost,ticks"])
+    
     let rounds = [1..numOfRounds]
-    let thoroughnesses = List.init 20 (fun t -> 0.05 * (t |> float))
+    let thoroughnesses = List.init 101 (fun t -> 0.01 * (t |> float))
 
-    do fileWrite.WriteLine("testNum,size,estimate,thoroughness,pathLength,pathCost,ticks")
-
-    let runner i =
-        createInstance() width height thoroughnesses |> createSolvers |> solveSolvers i |> writeResultsToFile i width height fileWrite
-        do fileWrite.Flush()
+    let runner i = createInstance() i width height thoroughnesses |> createSolvers |> solveSolvers i |> getResults i width height |> writeResults fileName
 
 //    for i in rounds do runner i
     parallelRun rounds (runner)
 
-    fileWrite.Close()
-    fileWrite.Dispose()
-    0
+    Console.ResetColor()
+    Console.Clear()
+
+    Console.WriteLine("Continue? ([y]/n)")
+    match Console.ReadKey().KeyChar with
+        | 'n' -> 0
+        | _ -> run()
+
+[<EntryPoint>]
+let main argv =
+    run()
 

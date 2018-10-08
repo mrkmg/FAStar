@@ -19,12 +19,14 @@ module SimpleWorld =
 
     type PositionType = Wall | Path | Grass | Rock | Teleporter
 
+    type XY = { X: int; Y: int }
+
     type Position =
         {
             X: int
             Y: int
             Type: PositionType
-            TeleportPosition: int option
+            TeleportPosition: int
         } with
         member this.travelCost =
             match this.Type with
@@ -46,22 +48,23 @@ module SimpleWorld =
             Height: int
             Positions: Map<int, Position>
         } with
-        member this.getAt x y = this.Positions.[getIndexFromXy x y this.Width]
+        member this.isValidCoords (x, y) = x >= 0 && x <= (this.Width - 1) && y >= 0 && y <= (this.Height - 1)
+        member this.getAtCoords (x, y) = this.Positions.[getIndexFromXy x y this.Width]
         member this.neighbors position =
             match position.Type with
-                | Teleporter -> [getXyFromIndex position.TeleportPosition.Value this.Width]
+                | Teleporter -> [getXyFromIndex position.TeleportPosition this.Width]
                 | _ -> [
-                           (position.X - 1, position.Y)
-                           (position.X + 1, position.Y)
-                           (position.X, position.Y - 1)
-                           (position.X, position.Y + 1)
-                           (position.X - 1, position.Y - 1)
-                           (position.X - 1, position.Y + 1)
-                           (position.X + 1, position.Y - 1)
-                           (position.X + 1, position.Y + 1)
-                       ]
-            |> List.where (fun (x, y) -> x >= 0 && x <= (this.Width - 1) && y >= 0 && y <= (this.Height - 1))
-            |> List.map (fun (x, y) -> this.getAt x y)
+                           (position.X - 1, position.Y) // Left
+                           (position.X + 1, position.Y) // Right
+                           (position.X, position.Y - 1) // Above
+                           (position.X, position.Y + 1) // Below
+                           (position.X - 1, position.Y - 1) // LA
+                           (position.X - 1, position.Y + 1) // LB
+                           (position.X + 1, position.Y - 1) // RA
+                           (position.X + 1, position.Y + 1) // RB
+                       ] 
+            |> List.where (this.isValidCoords)
+            |> List.map (this.getAtCoords)
             |> List.where (fun t -> not (t.Type = Wall))
 
 
@@ -97,7 +100,7 @@ module SimpleWorld =
             X = x
             Y = y
             Type = t
-            TeleportPosition = if t = Teleporter then Some ((new Random()).Next(width * height)) else None
+            TeleportPosition = if t = Teleporter then ((new Random()).Next(width * height)) else -1
         }
 
     let create width height =
