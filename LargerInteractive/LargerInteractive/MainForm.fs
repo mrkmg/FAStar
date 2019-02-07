@@ -9,9 +9,9 @@ open Eto.Drawing
 type MainForm () as this =
     inherit Form()
     do
-        let worldWidth = 400
-        let worldHeight = 400
-        let scale = 2
+        let worldWidth = 200
+        let worldHeight = 100
+        let scale = 8
 
         base.Title <- "FAStar Interactive Test"
 
@@ -51,15 +51,25 @@ type MainForm () as this =
 
         let getCurrentThoroughness() = (float thoroughnessInput.Value) / (float 100);
 
-        let tickState() = match mainState with | Some state -> mainState <- Some (State.tickState drawing state); | None -> ()
+        let tickState() = 
+            match mainState with 
+                | Some state -> mainState <- Some (State.tickState drawing state)
+                | None -> ()
+
         let createNewState() = mainState <- Some (State.create worldWidth worldHeight (getCurrentThoroughness()))
-        let startSolve() = match mainState with | Some state -> mainState <- Some { state with Status = Ticking }; | None -> ()
-        let changeStateThoroughness() =  match mainState with
-                                            | Some state -> mainState <- Some (State.changeThoroughness (getCurrentThoroughness()) state)
-                                            | None -> createNewState()
+
+        let startSolve() = 
+            match mainState with 
+                | Some state -> mainState <- Some { state with Status = Ticking }
+                | None -> ()
+        
+        let changeStateThoroughness() =  
+            match mainState with
+                | Some state -> mainState <- Some (State.changeThoroughness (getCurrentThoroughness()) state)
+                | None -> ()
 
         let t = new UITimer()
-        t.Interval <- 0.001
+        t.Interval <- 0.0001
         t.Elapsed.Add(fun e -> do tickState())
         goButton.Click.Add(fun e -> do startSolve())
         newMapButton.Click.Add(fun e -> do createNewState())

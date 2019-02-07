@@ -5,7 +5,7 @@ module SimpleWorld =
     open System
 
     let private teleportFactor = 4000
-    let private factor = 16.0
+    let private factor = 4.0
     let private cFactor i = factor ** i
     let private sq (i: float) = i * i
     let private dist x1 x2 y1 y2 =
@@ -110,7 +110,7 @@ module SimpleWorld =
         {
             Width = width
             Height = height
-            Positions = List.fold (fun m i -> Map.add i (createNode i width height noise) m) Map.empty [0..width * height]
+            Positions = List.fold (fun m i -> Map.add i (createNode i width height noise) m) Map.empty [0..(width * height - 1)]
         }
 
 

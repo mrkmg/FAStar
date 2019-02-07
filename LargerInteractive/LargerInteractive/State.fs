@@ -5,7 +5,7 @@ open FAStar
 open SimpleWorld
 
 
-type StateStatus = New | Ticking | Solved | Waiting | Done
+type StateStatus = New | Ticking | Solved | Waiting | Done | Failed
 type State =
     {
         Thoroughness: float
@@ -56,7 +56,9 @@ module State =
         drawWidget.drawPositionType state.Origin EndPoint
         drawWidget.drawPositionType state.Destination EndPoint
     let printCurrent (drawWidget: DrawWidget) state =
-        if not (state.Solver.CurrentNode = state.Origin) && not (state.Solver.CurrentNode = state.Destination) then drawWidget.drawPositionType state.Solver.CurrentNode Current
+        let notIsOrigin = not (state.Solver.CurrentNode = state.Origin)
+        let notIsDestination =  not (state.Solver.CurrentNode = state.Destination)
+        if notIsOrigin && notIsDestination then drawWidget.drawPositionType state.Solver.CurrentNode Current
     let printPath (drawWidget: DrawWidget) state =
         if state.Solver.Status = SolverStatus.Solved then drawWidget.drawAllType state.Solver.Path Path
 
@@ -72,7 +74,7 @@ module State =
                 match newState.Solver.Status with
                     | SolverStatus.Open -> newState
                     | SolverStatus.Solved -> { newState with Status = StateStatus.Solved }
-                    | _ -> raise (Exception "Failed to solve")
+                    | _ -> { newState with Status = StateStatus.Failed }
             | StateStatus.Solved ->
                 printUndoClosed drawWidget state
                 printEndPoints drawWidget state

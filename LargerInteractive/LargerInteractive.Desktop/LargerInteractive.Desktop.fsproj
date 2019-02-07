@@ -15,11 +15,16 @@
 
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.4.1" />
+    <PackageReference Include="Eto.Platform.Direct2D" Version="2.4.1" />
     <PackageReference Include="Eto.Platform.Gtk" Version="2.4.1" />
-    <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" />
-    <PackageReference Include="FSharp.Core" Version="4.3.2" />
+    <PackageReference Include="FSharp.NET.Sdk" Version="1.0.5" PrivateAssets="All" />
+    <PackageReference Include="FSharp.Core" Version="4.6.0" />
     <PackageReference Include="Eto.Platform.Mac64" Version="2.4.1" />
     <PackageReference Include="Eto.Platform.Wpf" Version="2.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Accessibility" />
   </ItemGroup>
 
 
