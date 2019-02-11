@@ -2,11 +2,9 @@ namespace LargerInteractive
 
 #nowarn "9"
 
-open System
 open Eto.Drawing
 open Eto.Forms
 open SimpleWorld
-open Microsoft.FSharp.NativeInterop
 
 type DrawType = Current | Path | EndPoint
 
@@ -17,7 +15,7 @@ type DrawWidget (width: int, height: int, scale: int) as this =
         match pos.Type with
         | SimpleWorld.Teleporter -> Color.FromRgb(0xFFFF00)
         | SimpleWorld.Grass      -> Color.FromRgb(0x009900)
-        | SimpleWorld.Path       -> Color.FromRgb(0x999999)
+        | SimpleWorld.Path       -> Color.FromRgb(0xDDDDDD)
         | SimpleWorld.Rock       -> Color.FromRgb(0x555555)
         | _                      -> Color.FromRgb(0x000000)
 
@@ -40,33 +38,30 @@ type DrawWidget (width: int, height: int, scale: int) as this =
         let yMin = y * scale
         let xMax = xMin + scale - 1
         let yMax = yMin + scale - 1
-
-        //let pos = bitmapData.Data
-
         for ix in [xMin .. xMax] do
             for iy in [yMin .. yMax] do
-                //let rPos =  pos + nativeint(ix) * nativeint(bitmapData.BytesPerPixel) + nativeint(iy) * nativeint(bitmapData.ScanWidth)
-                //let ptr = NativePtr.ofNativeInt<int>(rPos)
-                //let col = bitmapData.TranslateArgbToData(color.ToArgb())
-                //NativePtr.write(ptr) col                
                 bitmapData.SetPixel(ix, iy, color)
 
     member this.drawPosition (pos: SimpleWorld.Position) = 
-        use bitmapData = sourceBitmap.Lock()
+        let bitmapData = sourceBitmap.Lock()
         this.setPixel pos.X pos.Y (positionColor pos) bitmapData
+        bitmapData.Dispose()
         this.Invalidate()
 
     member this.drawPositionType (pos: SimpleWorld.Position) t =
-        use bitmapData = sourceBitmap.Lock()
+        let bitmapData = sourceBitmap.Lock()
         this.setPixel pos.X pos.Y (typeColor pos t) bitmapData
+        bitmapData.Dispose()
         this.Invalidate()
 
     member this.drawAll (posList: SimpleWorld.Position list) =
-        use bitmapData = sourceBitmap.Lock()
+        let bitmapData = sourceBitmap.Lock()
         for pos in posList do this.setPixel pos.X pos.Y (positionColor pos) bitmapData
+        bitmapData.Dispose()
         this.Invalidate()
 
     member this.drawAllType (posList: SimpleWorld.Position list) t = 
-        use bitmapData = sourceBitmap.Lock()
+        let bitmapData = sourceBitmap.Lock()
         for pos in posList do this.setPixel pos.X pos.Y (typeColor pos t) bitmapData
+        bitmapData.Dispose()
         this.Invalidate()

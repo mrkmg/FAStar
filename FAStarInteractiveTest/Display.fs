@@ -6,7 +6,7 @@ module Display =
     open System
     open SimpleWorld.SimpleWorld
 
-    let private fillerChar = '▓'
+    let private fillerChar = '0'
     let private defaultBackground = ConsoleColor.Black
     let private defaultForeground = ConsoleColor.White
     let private errorBackground = ConsoleColor.Red

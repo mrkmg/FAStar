@@ -4,7 +4,7 @@ module SimpleWorld =
     open SharpNoise
     open System
 
-    let private teleportFactor = 4000
+    let private teleportFactor = 12000
     let private factor = 4.0
     let private cFactor i = factor ** i
     let private sq (i: float) = i * i
@@ -75,8 +75,8 @@ module SimpleWorld =
     let random = new Random()
 
     let private getTypeFromVal v =
-        if random.Next(teleportFactor) = 1 then Teleporter
-        else
+        //if random.Next(teleportFactor) = 1 then Teleporter
+        //else
             match v with
                 | t when t < typeBound0 -> Wall
                 | t when t < typeBound1 && t > typeBound0 -> Grass
